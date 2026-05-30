@@ -1,58 +1,40 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const errorParam = searchParams.get("error");
 
-  if (errorParam) {
-    return NextResponse.redirect(`${origin}/onboarding`);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost ? `https://${forwardedHost}` : origin;
+
+  if (!code) {
+    return NextResponse.redirect(`${host}/onboarding?debug=no_code`);
   }
 
-  if (code) {
-    const cookieStore = cookies();
+  const supabase = createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          get: (name: string) => cookieStore.get(name)?.value,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          set: (name: string, value: string, options: any) => {
-            try { cookieStore.set(name, value, options); } catch {}
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          remove: (name: string, options: any) => {
-            try { cookieStore.set(name, "", options); } catch {}
-          },
-        },
-      }
-    );
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data: userData } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        if (userData?.role === "teacher" || userData?.role === "admin") {
-          return NextResponse.redirect(`${origin}/teacher`);
-        }
-      }
-
-      return NextResponse.redirect(`${origin}/dashboard`);
-    }
+  if (error) {
+    const msg = encodeURIComponent(error.message);
+    return NextResponse.redirect(`${host}/onboarding?debug=exchange_error&msg=${msg}`);
   }
 
-  return NextResponse.redirect(`${origin}/onboarding`);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(`${host}/onboarding?debug=no_user`);
+  }
+
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (userData?.role === "teacher" || userData?.role === "admin") {
+    return NextResponse.redirect(`${host}/teacher`);
+  }
+
+  return NextResponse.redirect(`${host}/dashboard`);
 }
