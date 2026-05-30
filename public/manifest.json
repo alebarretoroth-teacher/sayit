@@ -1,0 +1,24 @@
+{
+  "name": "Sayit",
+  "short_name": "Sayit",
+  "description": "Stop translating. Start speaking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FF",
+  "theme_color": "#4F6EF7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
