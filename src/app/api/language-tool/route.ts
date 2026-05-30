@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY! });
 
 const PROMPTS: Record<string, string> = {
   "como-se-diz": `Você é um professor de inglês para brasileiros. O aluno vai digitar uma palavra ou expressão em português.
@@ -48,7 +48,8 @@ export async function POST(req: NextRequest) {
     const systemPrompt = PROMPTS[mode];
     if (!systemPrompt) return NextResponse.json({ error: "invalid mode" }, { status: 400 });
 
-    const response = await groq.chat.completions.create({
+  const groq = getGroq();
+  const response = await groq.chat.completions.create({
       model: "llama3-8b-8192",
       messages: [
         { role: "system", content: systemPrompt },

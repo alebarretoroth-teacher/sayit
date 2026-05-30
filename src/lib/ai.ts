@@ -1,33 +1,21 @@
-/**
- * SAYIT — AI Layer (Groq)
- * Transcrição via Whisper (Groq) + correção via Llama 3 (Groq).
- * Groq é gratuito no tier de dev e muito mais rápido que OpenAI.
- */
-
 import Groq from "groq-sdk";
 import type { AIFeedback } from "@/types";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY! });
+}
 
-/**
- * Transcreve áudio do aluno usando Whisper (via Groq).
- */
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
   const file = new File([audioBlob], "audio.webm", { type: "audio/webm" });
-
+  const groq = getGroq();
   const transcription = await groq.audio.transcriptions.create({
     file,
     model: "whisper-large-v3",
     language: "en",
   });
-
   return transcription.text;
 }
 
-/**
- * Avalia a resposta do aluno (escrita ou transcrita) usando Llama 3 via Groq.
- * Retorna feedback estruturado em português.
- */
 export async function evaluateAnswer(params: {
   exercise_type: string;
   prompt: string;
@@ -37,27 +25,11 @@ export async function evaluateAnswer(params: {
 }): Promise<AIFeedback> {
   const { exercise_type, prompt, correct_answer, student_answer, pattern } = params;
 
-  const systemPrompt = `Você é um professor de inglês especializado em ajudar brasileiros adultos a desenvolver fluência.
-Avalie a resposta do aluno de forma construtiva, em português simples e direto.
-Seja honesto mas encorajador. Nunca seja condescendente.
-Foque no padrão linguístico em questão: ${pattern ?? "estrutura geral"}.
-Retorne SOMENTE JSON válido, sem markdown, sem explicações extras.`;
+  const systemPrompt = "Voce e um professor de ingles. Avalie a resposta do aluno em portugues. Retorne SOMENTE JSON valido.";
 
-  const userPrompt = `Exercício: ${exercise_type}
-Prompt dado ao aluno: ${prompt}
-Resposta correta: ${correct_answer}
-Resposta do aluno: ${student_answer}
+  const userPrompt = `Exercicio: ${exercise_type}\nPrompt: ${prompt}\nResposta correta: ${correct_answer}\nResposta do aluno: ${student_answer}\nPadrao: ${pattern ?? "geral"}\n\nRetorne JSON: {"is_correct":boolean,"score":number,"feedback_pt":"string","corrected_answer":"string|null","highlighted_error":"string|null","encouragement":"string"}`;
 
-Retorne JSON com exatamente estes campos:
-{
-  "is_correct": boolean,
-  "score": number (0-100),
-  "feedback_pt": "string (max 2 frases, direto ao ponto)",
-  "corrected_answer": "string ou null",
-  "highlighted_error": "string ou null",
-  "encouragement": "string (1 frase curta em português)"
-}`;
-
+  const groq = getGroq();
   const response = await groq.chat.completions.create({
     model: "llama3-8b-8192",
     messages: [

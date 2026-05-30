@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "choose" | "login" | "signup" | "done";
@@ -73,22 +73,22 @@ export default function OnboardingPage() {
           <img src="/logo.svg" alt="Sayit" className="h-20 w-auto" />
         </div>
 
-        <AnimatePresence mode="wait">
+        <div>
 
           {/* ── DONE ── */}
           {mode === "done" && (
-            <motion.div key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="space-y-4">
               <div className="text-5xl">📩</div>
               <h2 className="text-2xl font-bold" style={{ color: "#072547" }}>Confirme seu email</h2>
               <p className="text-sm leading-relaxed" style={{ color: "#072547", opacity: 0.6 }}>
                 Enviamos um link para <strong>{email}</strong>.<br />Clique nele para ativar sua conta.
               </p>
-            </motion.div>
+            </div>
           )}
 
           {/* ── CHOOSE ── */}
           {mode === "choose" && (
-            <motion.div key="choose" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="space-y-4">
               <p className="text-lg font-semibold" style={{ color: "#FF7058" }}>
                 Inglês para falar. Para a vida. Para o mundo.
               </p>
@@ -131,12 +131,12 @@ export default function OnboardingPage() {
               >
                 Criar conta
               </button>
-            </motion.div>
+            </div>
           )}
 
           {/* ── LOGIN ── */}
           {mode === "login" && (
-            <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4 text-left">
+            <div className="space-y-4 text-left">
               <h2 className="text-xl font-bold text-center" style={{ color: "#072547" }}>Entrar</h2>
 
               <input
@@ -171,12 +171,12 @@ export default function OnboardingPage() {
               <button onClick={() => { setMode("choose"); setError(""); }} className="w-full text-xs text-center" style={{ color: "#072547", opacity: 0.45 }}>
                 ← Voltar
               </button>
-            </motion.div>
+            </div>
           )}
 
           {/* ── SIGNUP ── */}
           {mode === "signup" && (
-            <motion.div key="signup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4 text-left">
+            <div className="space-y-4 text-left">
               <h2 className="text-xl font-bold text-center" style={{ color: "#072547" }}>Criar conta</h2>
 
               <input
@@ -219,11 +219,11 @@ export default function OnboardingPage() {
               <button onClick={() => { setMode("choose"); setError(""); }} className="w-full text-xs text-center" style={{ color: "#072547", opacity: 0.45 }}>
                 ← Voltar
               </button>
-            </motion.div>
+            </div>
           )}
 
-        </AnimatePresence>
-      </motion.div>
+          </div>
+        </motion.div>
     </div>
   );
 }

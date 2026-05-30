@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY! });
 
 export async function POST(req: NextRequest) {
   const { phrase } = await req.json();
   if (!phrase) return NextResponse.json({ error: "phrase required" }, { status: 400 });
 
+  const groq = getGroq();
   const response = await groq.chat.completions.create({
     model: "llama3-8b-8192",
     messages: [
